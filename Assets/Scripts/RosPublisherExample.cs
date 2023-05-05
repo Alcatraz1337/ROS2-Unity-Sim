@@ -1,15 +1,16 @@
 using UnityEngine;
 using Unity.Robotics.ROSTCPConnector;
-using RosMessageTypes.UnityRoboticsDemo;
+using RosMessageTypes.PsoQ;
 
 /// <summary>
-///
+/// 
 /// </summary>
-public class RosPublisherExample : MonoBehaviour {
+public class RosPublisherExample : MonoBehaviour
+{
     ROSConnection ros;
     public string topicName = "pos_rot";
 
-    // The game object
+    // The game object 
     public GameObject cube;
     // Publish the cube's position and rotation every N seconds
     public float publishMessageFrequency = 0.5f;
@@ -17,16 +18,19 @@ public class RosPublisherExample : MonoBehaviour {
     // Used to determine how much time has elapsed since the last message was published
     private float timeElapsed;
 
-    void Start() {
+    void Start()
+    {
         // start the ROS connection
         ros = ROSConnection.GetOrCreateInstance();
         ros.RegisterPublisher<PosRotMsg>(topicName);
     }
 
-    private void Update() {
+    private void Update()
+    {
         timeElapsed += Time.deltaTime;
 
-        if (timeElapsed > publishMessageFrequency) {
+        if (timeElapsed > publishMessageFrequency)
+        {
             cube.transform.rotation = Random.rotation;
 
             PosRotMsg cubePos = new PosRotMsg(
