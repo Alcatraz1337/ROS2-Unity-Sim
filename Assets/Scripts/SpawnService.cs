@@ -17,6 +17,7 @@ public class SpawnService : MonoBehaviour
     }
 
     SpawnResponse HandleSpawnRequest(SpawnRequest request) {
+        Debug.Log("Spawn service called");
     
         Vector3 spawnVector = new Vector3(request.x, request.y, request.z);
         string name = request.name;
