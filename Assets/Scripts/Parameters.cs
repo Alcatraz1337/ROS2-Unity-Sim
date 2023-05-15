@@ -16,6 +16,12 @@ public static class Parameters {
     }
 
     [Serializable]
+    public class CarParameters {
+        public float maxMovingDistance = 1.0f;
+        public float maxDistanceThreshold = 5.0f;
+    }
+
+    [Serializable]
     public class EnvParameters {
         public float spawnBoundary = 4.5f;
 
@@ -46,5 +52,6 @@ public static class Parameters {
         public bool isTargetCaught = false;
         public float angleStepSize = 45.0f;
         public float distanceStepSize = 1.0f;
+        public int actionSize;
     }
 }

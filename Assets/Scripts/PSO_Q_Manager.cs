@@ -12,12 +12,16 @@ public class PSO_Q_Manager : MonoBehaviour {
     public ROSParameters rosParameters;
     public EnvParameters envParameters;
     public PsoParameters psoParameters;
+    public CarParameters carParameters;
     public QLearningParameters qLearningParameters;
 
-    public GameObject cars;
+    public GameObject catcherPrefab;
+    public GameObject escaperPrefab;
 
     private List<GameObject> catchers;
     private List<GameObject> escapers;
+    private bool isAllCatchersSet;
+    private bool isAllEscapersSet;
 
     ROSConnection ros;
 
@@ -28,31 +32,48 @@ public class PSO_Q_Manager : MonoBehaviour {
         escapers = new List<GameObject>();
         for (int i = 0; i < psoParameters.population; i++) {
             // Spawn a catcher
-            GameObject catcher = Instantiate(cars, new Vector3(Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary),
+            GameObject catcher = Instantiate(catcherPrefab, new Vector3(Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary),
                 0,
                 Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary)), Quaternion.identity);
             catcher.name = "catcher" + i.ToString();
+            catcher.GetComponent<PSOIndividual>().maxMovingDistance = carParameters.maxMovingDistance;
             catchers.Add(catcher);
         }
         for (int i = 0; i < psoParameters.n_escapers; i++) {
             // Spawn an escaper
-            GameObject escaper = Instantiate(cars, new Vector3(Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary),
+            GameObject escaper = Instantiate(escaperPrefab, new Vector3(Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary),
                                             0,
                                             Random.Range(-envParameters.spawnBoundary, envParameters.spawnBoundary)), Quaternion.identity);
             escaper.name = "escaper" + i.ToString();
             GameObject body = escaper.transform.GetChild(0).gameObject;
             body.GetComponent<Renderer>().material.color = Color.cyan;
+            escaper.GetComponent<QLearningComponent>().angleStepSize = qLearningParameters.angleStepSize;
+            escaper.GetComponent<QLearningComponent>().distanceStepSize = qLearningParameters.distanceStepSize;
+            escaper.GetComponent<QLearningComponent>().actionSize = qLearningParameters.actionSize;
+            escaper.GetComponent<QLearningComponent>().maxMovingDistance = carParameters.maxMovingDistance;
             escapers.Add(escaper);
         }
+        isAllCatchersSet = true;
+        isAllEscapersSet = true;
     }
 
     void FixedUpdate() {
         if (qLearningParameters.epoch < qLearningParameters.maxEpoch) {
-            if (psoParameters.steps == 0) {
+            if (psoParameters.steps == 0 && isAllCatchersSet && isAllEscapersSet) {
                 for (int i = 0; i < psoParameters.population; i++) {
                     PosRotMsg randomVel = GenerateRandomVelocity(i);
                     catchers[i].GetComponent<PSOIndividual>().UpdateLastVelocity(randomVel);
                     catchers[i].GetComponent<ROSCarPublisher>().ExecuteVelCmd(randomVel);
+                }
+                WaitCatchers();
+                escapers[0].GetComponent<QLearningComponent>().currentState = ObserveCurrentState();
+                int action = escapers[0].GetComponent<QLearningComponent>().ChooseAction(escapers[0].GetComponent<QLearningComponent>().currentState.Item1,
+                    escapers[0].GetComponent<QLearningComponent>().currentState.Item2);
+                escapers[0].GetComponent<QLearningComponent>().TakeAction(action);
+                WaitEscapers();
+                if (!escapers[0].GetComponent<CarController>().isMoving) {
+                    Tuple<int, int> newState = ObserveCurrentState();
+                    float reward = GenerateReward();
                 }
             }
             psoParameters.gbestPose = new PoseWithFitnessMsg();
@@ -77,7 +98,7 @@ public class PSO_Q_Manager : MonoBehaviour {
     private void UpdatePbest() {
         for (int i = 0; i < psoParameters.population; i++) {
             // Update pbest
-            double fitness = CalculateFitness(catchers[i].transform, escapers[i].transform);
+            double fitness = CalculateFitness(catchers[i].transform, escapers[0].transform);
             if (fitness < catchers[i].GetComponent<PSOIndividual>().pbestFitness) {
                 catchers[i].GetComponent<PSOIndividual>().UpdatePbest();
                 catchers[i].GetComponent<PSOIndividual>().UpdateFitness(fitness);
@@ -97,11 +118,11 @@ public class PSO_Q_Manager : MonoBehaviour {
     }
 
     private PosRotMsg GenerateRandomVelocity(int index) {
-        float randamDistance = Random.Range(0.0f, catchers[index].GetComponent<PSOIndividual>().maxMoveDistance);
+        float randamDistance = Random.Range(0.0f, catchers[index].GetComponent<PSOIndividual>().maxMovingDistance);
         float randomAngle = Random.Range(0.0f, 2 * Mathf.PI);
         PosRotMsg randomPos = new PosRotMsg();
         randomPos.pos_x = randamDistance * Mathf.Cos(randomAngle);
-        randomPos.pos_y = randamDistance * Mathf.Sin(randomAngle);
+        randomPos.pos_z = randamDistance * Mathf.Sin(randomAngle);
 
         return randomPos;
     }
@@ -109,28 +130,28 @@ public class PSO_Q_Manager : MonoBehaviour {
     private PosRotMsg GenerateAdjustedVelocity(int index) {
         PosRotMsg adjustedVelocity = new PosRotMsg();
         float dxGbest = psoParameters.gbestPose.pos_x - catchers[index].transform.position.x;
-        float dyGbest = psoParameters.gbestPose.pos_y - catchers[index].transform.position.y;
+        float dzGbest = psoParameters.gbestPose.pos_z - catchers[index].transform.position.z;
 
         float dxPbest = catchers[index].GetComponent<PSOIndividual>().pbest.x - catchers[index].transform.position.x;
-        float dyPbest = catchers[index].GetComponent<PSOIndividual>().pbest.y - catchers[index].transform.position.y;
+        float dzPbest = catchers[index].GetComponent<PSOIndividual>().pbest.z - catchers[index].transform.position.z;
 
         float randC1 = Random.Range(0.0f, 1.0f);
         float randC2 = Random.Range(0.0f, 1.0f);
 
         float dxNew = psoParameters.inertiaWeight * catchers[index].GetComponent<PSOIndividual>().lastVelocity.x +
             psoParameters.c1 * randC1 * dxPbest + psoParameters.c2 * randC2 * dxGbest;
-        float dyNew = psoParameters.inertiaWeight * catchers[index].GetComponent<PSOIndividual>().lastVelocity.y +
-            psoParameters.c1 * randC1 * dyPbest + psoParameters.c2 * randC2 * dyGbest;
+        float dzNew = psoParameters.inertiaWeight * catchers[index].GetComponent<PSOIndividual>().lastVelocity.y +
+            psoParameters.c1 * randC1 * dzPbest + psoParameters.c2 * randC2 * dzGbest;
 
-        float newDistance = Mathf.Sqrt(dxNew * dxNew + dyNew * dyNew);
-        if (newDistance < catchers[index].GetComponent<PSOIndividual>().maxMoveDistance) {
+        float newDistance = Mathf.Sqrt(dxNew * dxNew + dzNew * dzNew);
+        if (newDistance < catchers[index].GetComponent<PSOIndividual>().maxMovingDistance) {
             adjustedVelocity.pos_x = dxNew;
-            adjustedVelocity.pos_y = dyNew;
+            adjustedVelocity.pos_z = dzNew;
             return adjustedVelocity;
         } else {
-            float newAngle = Mathf.Atan2(dyNew, dxNew);
-            adjustedVelocity.pos_x = catchers[index].GetComponent<PSOIndividual>().maxMoveDistance * Mathf.Cos(newAngle);
-            adjustedVelocity.pos_y = catchers[index].GetComponent<PSOIndividual>().maxMoveDistance * Mathf.Sin(newAngle);
+            float newAngle = Mathf.Atan2(dzNew, dxNew);
+            adjustedVelocity.pos_x = catchers[index].GetComponent<PSOIndividual>().maxMovingDistance * Mathf.Cos(newAngle);
+            adjustedVelocity.pos_z = catchers[index].GetComponent<PSOIndividual>().maxMovingDistance * Mathf.Sin(newAngle);
             return adjustedVelocity;
         }
     }
@@ -158,8 +179,8 @@ public class PSO_Q_Manager : MonoBehaviour {
     private Tuple<int, int> ObserveCurrentState() {
         float dx = 0.0f, dy = 0.0f;
         for (int i = 0; i < psoParameters.population; i++) {
-            dx += escapers[i].transform.position.x - catchers[i].transform.position.x;
-            dy += escapers[i].transform.position.z - catchers[i].transform.position.z;
+            dx += escapers[0].transform.position.x - catchers[i].transform.position.x;
+            dy += escapers[0].transform.position.z - catchers[i].transform.position.z;
         }
         float distance = Mathf.Sqrt(dx * dx + dy * dy);
         float angle = Mathf.Atan2(dy, dx);
@@ -169,8 +190,8 @@ public class PSO_Q_Manager : MonoBehaviour {
     private float GenerateReward() {
         float dx = 0.0f, dy = 0.0f;
         for (int i = 0; i < psoParameters.population; i++) {
-            dx += escapers[i].transform.position.x - catchers[i].transform.position.x;
-            dy += escapers[i].transform.position.z - catchers[i].transform.position.z;
+            dx += escapers[0].transform.position.x - catchers[i].transform.position.x;
+            dy += escapers[0].transform.position.z - catchers[i].transform.position.z;
         }
         float distance = Mathf.Sqrt(dx * dx + dy * dy);
         if (distance > qLearningParameters.targetDetectRadius) {
@@ -215,6 +236,33 @@ public class PSO_Q_Manager : MonoBehaviour {
         return false;
     }
 
+    private bool IsAllCatchersSet() {
+        for (int i = 0; i < psoParameters.population; i++) {
+            if (catchers[i].GetComponent<CarController>().isMoving)
+                return false;
+        }
+        return true;
+    }
+
+    private void WaitCatchers() {
+        for (int i = 0; i < psoParameters.population; i++) {
+            if (catchers[i].GetComponent<CarController>().isMoving) {
+                isAllCatchersSet = false;
+                return;
+            }
+        }
+        isAllCatchersSet = true;
+    }
+
+    private void WaitEscapers() {
+        for (int i = 0; i < psoParameters.n_escapers; i++) {
+            if (escapers[0].GetComponent<CarController>().isMoving) {
+                isAllEscapersSet = false;
+                return;
+            }
+        }
+        isAllEscapersSet = true;
+    }
 
     #endregion Environment
 }

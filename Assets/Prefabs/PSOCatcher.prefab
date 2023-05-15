@@ -107,8 +107,12 @@ GameObject:
   m_Component:
   - component: {fileID: 6321686550267389357}
   - component: {fileID: 1863949846}
+  - component: {fileID: 1863949848}
+  - component: {fileID: 1863949849}
+  - component: {fileID: 1863949850}
+  - component: {fileID: 1863949851}
   m_Layer: 0
-  m_Name: Car
+  m_Name: PSOCatcher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -148,6 +152,62 @@ MonoBehaviour:
   maxSpeed: 1
   destination: {x: 0, y: 0, z: 0}
   delta: 0.05
+  isMoving: 0
+--- !u!114 &1863949848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3847966770518698412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fea8852d6959b79469ef458d829049c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pbest: {x: 0, y: 0, z: 0}
+  pbestFitness: 0
+  maxMoveDistance: 1
+  lastVelocity: {x: 0, y: 0, z: 0}
+--- !u!114 &1863949849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3847966770518698412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eded5c534ccfec4c93c36b97643dc2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  topicName: 
+--- !u!114 &1863949850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3847966770518698412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 713e8b3269238ad4f900132af68cead5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  topicName: 
+--- !u!114 &1863949851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3847966770518698412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eded5c534ccfec4c93c36b97643dc2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  topicName: 
 --- !u!1 &8800146020641684367
 GameObject:
   m_ObjectHideFlags: 0

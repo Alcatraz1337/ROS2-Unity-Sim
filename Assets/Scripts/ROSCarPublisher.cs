@@ -22,6 +22,8 @@ public class ROSCarPublisher : MonoBehaviour {
     }
 
     public void ExecuteVelCmd(PosRotMsg msg) {
+        msg.pos_x += this.transform.position.x;
+        msg.pos_z += this.transform.position.z;
         ros.Publish(topicName, msg);
     }
 

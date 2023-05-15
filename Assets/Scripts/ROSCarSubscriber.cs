@@ -23,6 +23,6 @@ public class ROSCarSubscriber : MonoBehaviour {
     }
 
     void ExecuteVelCmd(PosRotMsg msg) {
-        transform.parent.gameObject.GetComponent<CarController>().SetDestination(new Vector3(msg.pos_x, msg.pos_y, msg.pos_z));
+        transform.gameObject.GetComponent<CarController>().SetDestination(new Vector3(msg.pos_x, msg.pos_y, msg.pos_z));
     }
 }

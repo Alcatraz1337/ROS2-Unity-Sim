@@ -6,7 +6,10 @@ using UnityEngine;
 public class PSOIndividual : MonoBehaviour {
     public Vector3 pbest;
     public double pbestFitness;
-    public float maxMoveDistance = 1.0f;
+
+    [HideInInspector]
+    public float maxMovingDistance = 1.0f;
+
     public Vector3 lastVelocity;
 
     // Start is called before the first frame update
