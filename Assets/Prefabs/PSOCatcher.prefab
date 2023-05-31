@@ -111,6 +111,7 @@ GameObject:
   - component: {fileID: 1863949849}
   - component: {fileID: 1863949850}
   - component: {fileID: 1863949851}
+  - component: {fileID: 8796695282100380257}
   m_Layer: 0
   m_Name: PSOCatcher
   m_TagString: Untagged
@@ -167,7 +168,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pbest: {x: 0, y: 0, z: 0}
   pbestFitness: 0
-  maxMoveDistance: 1
+  maxMovingDistance: 1
   lastVelocity: {x: 0, y: 0, z: 0}
 --- !u!114 &1863949849
 MonoBehaviour:
@@ -208,6 +209,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   topicName: 
+--- !u!54 &8796695282100380257
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3847966770518698412}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 4
+  m_CollisionDetection: 0
 --- !u!1 &8800146020641684367
 GameObject:
   m_ObjectHideFlags: 0

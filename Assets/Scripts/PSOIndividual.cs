@@ -37,6 +37,7 @@ public class PSOIndividual : MonoBehaviour {
 
     public void ResetPBest() {
         pbest = transform.position;
+        pbestFitness = double.MaxValue;
     }
 
     public void ResetLastVelocity() {

@@ -2,6 +2,7 @@ using RosMessageTypes.PsoQ;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class QLearningComponent : MonoBehaviour {
@@ -37,6 +38,8 @@ public class QLearningComponent : MonoBehaviour {
         for (int i = 0; i < actionSize + 1; i++) {
             actionSpace[i] = i;
         }
+        Debug.Log("Size of qTable: " + qTable.Count().ToString() + " Size of qT[0]: " + qTable[0].Count().ToString() + " Size of qT[0][0]: " +
+            qTable[0][0].Count().ToString());
     }
 
     // Update is called once per frame
@@ -73,6 +76,7 @@ public class QLearningComponent : MonoBehaviour {
     }
 
     public void UpdateQTable(int angleBin, int distanceBin, int action, float reward, int newAngleBin, int newDistanceBin) {
+        Debug.Log("Update QTable: " + angleBin + " " + distanceBin + " " + action + " " + reward + " " + newAngleBin + " " + newDistanceBin);
         qTable[angleBin][distanceBin][action] = (1 - alpha) * qTable[angleBin][distanceBin][action] + alpha * (reward + gamma * Mathf.Max(qTable[newAngleBin][newDistanceBin]));
     }
 }

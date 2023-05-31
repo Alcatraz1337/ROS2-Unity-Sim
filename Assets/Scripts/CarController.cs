@@ -27,6 +27,7 @@ public class CarController : MonoBehaviour {
 
     private void MoveToPosition(Vector3 destination) {
         float step = speed * Time.deltaTime; // calculate distance to move
+        //Debug.Log("Moving to " + destination);
         transform.position = Vector3.MoveTowards(transform.position, destination, step);
     }
 
